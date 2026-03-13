@@ -1,0 +1,88 @@
+# ============================================================
+# ArcticVision — Master Configuration
+# ============================================================
+
+project:
+  name: "ArcticVision"
+  version: "1.0.0"
+  description: "AI-Driven Arctic Climate Change Prediction System"
+
+# --- Paths (relative to project root) ---
+paths:
+  data_raw:       "data/raw"
+  data_processed: "data/processed"
+  data_external:  "data/external"
+  outputs_plots:  "outputs/plots"
+  outputs_anim:   "outputs/animations"
+  outputs_dash:   "outputs/dashboards"
+  outputs_models: "outputs/models"
+  reports:        "reports"
+
+# --- Data Ingestion ---
+data_pipeline:
+  # Date range for historical data fetch
+  start_date: "1979-01-01"     # NSIDC sea ice record begins 1979
+  end_date:   "2024-12-31"
+  # Geographic bounding box [lon_min, lat_min, lon_max, lat_max]
+  arctic_bbox: [-180, 60, 180, 90]
+  # NASA EarthData
+  nasa:
+    base_url: "https://n5eil01u.ecs.nsidc.org"
+    sea_ice_product: "NSIDC-0051"   # SSMI/I sea ice concentration
+    resolution_km: 25
+  # NOAA PSL Climate Data
+  noaa:
+    base_url: "https://psl.noaa.gov/thredds/catalog"
+    sst_product: "ERSSTv5"
+  # Google Earth Engine
+  gee:
+    collection_modis_lst:  "MODIS/061/MOD11A2"   # Land Surface Temp
+    collection_sentinel1:  "COPERNICUS/S1_GRD"
+    collection_era5:       "ECMWF/ERA5/MONTHLY"
+
+# --- Preprocessing ---
+preprocessing:
+  missing_value_threshold: 0.30   # Drop columns with >30% NaN
+  smoothing_window: 3             # Rolling mean window (months)
+  normalization: "minmax"         # "minmax" | "zscore"
+  train_test_split: 0.80
+  validation_split: 0.10
+  sequence_length: 24             # Months of history fed to LSTM
+
+# --- Climate Analysis ---
+climate_analysis:
+  baseline_period: ["1979-01-01", "2000-12-31"]   # Anomaly baseline
+  trend_significance: 0.05                          # p-value threshold
+  seasonal_periods: 12                              # Monthly data
+
+# --- ML Models ---
+ml_models:
+  lstm:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.2
+    learning_rate: 0.001
+    batch_size: 32
+    epochs: 100
+    patience: 15            # Early stopping patience
+  transformer:
+    d_model: 64
+    nhead: 4
+    num_encoder_layers: 3
+    dim_feedforward: 256
+    dropout: 0.1
+    learning_rate: 0.0005
+    batch_size: 32
+    epochs: 100
+    patience: 15
+  forecast_horizon: 24     # Months to forecast ahead
+
+# --- Visualization ---
+visualization:
+  map_center: [90, 0]       # Arctic pole
+  map_zoom: 3
+  colormap_ice: "Blues_r"
+  colormap_temp: "RdBu_r"
+  animation_fps: 4
+  figure_dpi: 150
+  figure_format: "png"
